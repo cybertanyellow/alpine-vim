@@ -65,27 +65,43 @@ RUN apk --update add \
     git \
     ncurses-terminfo \
     python \
+    diffutils \
 # YouCompleteMe
-    && apk add --virtual build-deps \
-    build-base \
+    && apk add build-base \
     cmake \
     go \
-    llvm \
+    llvm clang \
     perl \
     python-dev \
     && git clone --depth 1  https://github.com/Valloric/YouCompleteMe \
     $UHOME/bundle/YouCompleteMe/ \
     && cd $UHOME/bundle/YouCompleteMe \
     && git submodule update --init --recursive \
-    && $UHOME/bundle/YouCompleteMe/install.py --gocode-completer \
+    && $UHOME/bundle/YouCompleteMe/install.py \
+      --gocode-completer --clang-completer \
+# YouCompleteMe-Generator
+    && git clone --depth 1 -b stable https://github.com/rdnetto/YCM-Generator.git \
+    $UHOME/bundle/YCM-Generator/ \
+# cscope
+    && apk add --update --virtual build-deps \
+    ncurses-dev flex byacc \
+    && git clone --depth 1 https://github.com/portante/cscope.git /tmp/cscope.git \
+    && cd /tmp/cscope.git && ./configure && make && make install \
+    && apk del build-deps \
+    && apk add ncurses-libs \
+    && git clone --depth 1 https://github.com/chazy/cscope_maps.git \
+    $UHOME/bundle/cscope_maps \
+# fzf
+#    && git clone --depth 1 https://github.com/junegunn/fzf \
+#    $UHOME/.fzf \
+#    && cd $UHOME/.fzf && ./install --all \
+#    && cd $GOPATH/src/github.com/junegunn/fzf && ./install --all \
 # Install and compile procvim.vim                        
     && git clone --depth 1 https://github.com/Shougo/vimproc.vim \
     $UHOME/bundle/vimproc.vim \
     && cd $UHOME/bundle/vimproc.vim \
     && make \
     && chown $UID:$GID -R $UHOME \
-# Cleanup
-    && apk del build-deps \
     && apk add \
     libxt \
     libx11 \
@@ -101,15 +117,19 @@ RUN apk --update add \
 
 USER $UNAME
 
+#yellow disable
+  #&& git clone --depth 1 https://github.com/pangloss/vim-javascript \
+  #&& git clone --depth 1 https://github.com/othree/html5.vim \
+  #&& git clone --depth 1 https://github.com/derekwyatt/vim-scala \
+  #
+
 # Plugins
 RUN cd $UHOME/bundle/ \
-    && git clone --depth 1 https://github.com/pangloss/vim-javascript \
     && git clone --depth 1 https://github.com/scrooloose/nerdcommenter \
     && git clone --depth 1 https://github.com/godlygeek/tabular \
     && git clone --depth 1 https://github.com/Raimondi/delimitMate \
     && git clone --depth 1 https://github.com/nathanaelkane/vim-indent-guides \
     && git clone --depth 1 https://github.com/groenewege/vim-less \
-    && git clone --depth 1 https://github.com/othree/html5.vim \
     && git clone --depth 1 https://github.com/elzr/vim-json \
     && git clone --depth 1 https://github.com/bling/vim-airline \
     && git clone --depth 1 https://github.com/easymotion/vim-easymotion \
@@ -117,7 +137,6 @@ RUN cd $UHOME/bundle/ \
     && git clone --depth 1 https://github.com/majutsushi/tagbar \
     && git clone --depth 1 https://github.com/vim-scripts/EasyGrep \
     && git clone --depth 1 https://github.com/jlanzarotta/bufexplorer \
-    && git clone --depth 1 https://github.com/kien/ctrlp.vim \
     && git clone --depth 1 https://github.com/scrooloose/nerdtree \
     && git clone --depth 1 https://github.com/jistr/vim-nerdtree-tabs \
     && git clone --depth 1 https://github.com/scrooloose/syntastic \
@@ -133,14 +152,15 @@ RUN cd $UHOME/bundle/ \
     && git clone --depth 1 https://github.com/terryma/vim-multiple-cursors \
     && git clone --depth 1 https://github.com/tpope/vim-repeat \
     && git clone --depth 1 https://github.com/tpope/vim-surround \
-    && git clone --depth 1 https://github.com/vim-scripts/mru.vim \
+    && git clone --depth 1 https://github.com/kien/ctrlp.vim \
     && git clone --depth 1 https://github.com/vim-scripts/YankRing.vim \
     && git clone --depth 1 https://github.com/tpope/vim-haml \
     && git clone --depth 1 https://github.com/SirVer/ultisnips \
     && git clone --depth 1 https://github.com/honza/vim-snippets \
-    && git clone --depth 1 https://github.com/derekwyatt/vim-scala \
+    && git clone --depth 1 https://github.com/vim-scripts/mru.vim \
     && git clone --depth 1 https://github.com/christoomey/vim-tmux-navigator \
     && git clone --depth 1 https://github.com/ekalinin/Dockerfile.vim \
+    && git clone --depth 1 https://github.com/junegunn/fzf.vim \
 # Theme
     && git clone --depth 1 \
     https://github.com/altercation/vim-colors-solarized
@@ -156,7 +176,8 @@ RUN  mv -f $UHOME/.vimrc $UHOME/.vimrc~ \
      && cat  $UHOME/my.vimrc \
      >> $UHOME/.vimrc~ \
      && rm $UHOME/my.vimrc \
-     && sed -i '/colorscheme peaksea/d' $UHOME/.vimrc~
+     && sed -i '/colorscheme peaksea/d' $UHOME/.vimrc~ \
+     && sed -i '/set autochdir/d' $UHOME/.vimrc~
 
 # Pathogen help tags generation
 RUN vim -E -c 'execute pathogen#helptags()' -c q ; return 0

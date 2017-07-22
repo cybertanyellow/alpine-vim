@@ -69,16 +69,13 @@ RUN apk --update add \
 # YouCompleteMe
     && apk add build-base \
     cmake \
-    go \
-    llvm clang \
-    perl \
-    python-dev \
+    go llvm clang-dev perl python-dev python3-dev \
     && git clone --depth 1  https://github.com/Valloric/YouCompleteMe \
     $UHOME/bundle/YouCompleteMe/ \
     && cd $UHOME/bundle/YouCompleteMe \
     && git submodule update --init --recursive \
     && $UHOME/bundle/YouCompleteMe/install.py \
-      --gocode-completer --clang-completer \
+      --gocode-completer --system-libclang --clang-completer \
 # YouCompleteMe-Generator
     && git clone --depth 1 -b stable https://github.com/rdnetto/YCM-Generator.git \
     $UHOME/bundle/YCM-Generator/ \
@@ -107,9 +104,6 @@ RUN apk --update add \
     libx11 \
     libstdc++ \
     && rm -rf \
-    $UHOME/bundle/YouCompleteMe/third_party/ycmd/clang_includes \
-    $UHOME/bundle/YouCompleteMe/third_party/ycmd/cpp \
-    /usr/lib/go \
     /var/cache/* \
     /var/log/* \
     /var/tmp/* \
